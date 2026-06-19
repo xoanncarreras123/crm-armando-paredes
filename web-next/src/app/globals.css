@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Tokens de color como variables CSS (RGB triplets).
+   ============================================================ */
+:root {
+  color-scheme: dark;
+  --bg-rgb: 14 15 18;
+  --surface-rgb: 21 23 28;
+  --raised-rgb: 28 31 37;
+  --ink-rgb: 242 243 245;
+  --ink-muted-rgb: 156 160 168;
+  --ink-faint-rgb: 95 100 112;
+  --gold-rgb: 212 165 116;
+  --green-rgb: 111 184 168;
+  --red-rgb: 224 120 86;
+  --blue-rgb: 124 156 198;
+  --violet-rgb: 155 138 201;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --sheen: rgba(255, 255, 255, 0.04);
+  --scroll-thumb: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg-rgb: 245 244 241;
+  --surface-rgb: 255 255 255;
+  --raised-rgb: 244 243 239;
+  --ink-rgb: 26 27 30;
+  --ink-muted-rgb: 90 94 102;
+  --ink-faint-rgb: 138 142 150;
+  --gold-rgb: 176 124 70;
+  --green-rgb: 74 145 131;
+  --red-rgb: 196 88 54;
+  --blue-rgb: 84 120 168;
+  --violet-rgb: 122 104 168;
+  --border: rgba(0, 0, 0, 0.09);
+  --border-strong: rgba(0, 0, 0, 0.16);
+  --sheen: rgba(0, 0, 0, 0.03);
+  --scroll-thumb: rgba(0, 0, 0, 0.14);
+}
+
+html, body { height: 100%; }
+
+body {
+  background-color: rgb(var(--bg-rgb));
+  color: rgb(var(--ink-rgb));
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-feature-settings: "ss01", "cv01";
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) transparent;
+}
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 999px;
+}
+
+.label {
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: rgb(var(--ink-faint-rgb));
+}
+.card {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background-color: rgb(var(--surface-rgb));
+}
+.card-hover { transition: all 0.15s; }
+.card-hover:hover {
+  border-color: var(--border-strong);
+  background-color: rgb(var(--raised-rgb));
+}
+.inp {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background-color: rgb(var(--bg-rgb) / 0.6);
+  padding: 8px 12px;
+  font-size: 13px;
+  color: rgb(var(--ink-rgb));
+  font-variant-numeric: tabular-nums;
+}
+.inp:focus { border-color: var(--border-strong); outline: none; }
+.skeleton { position: relative; overflow: hidden; background-color: rgb(var(--raised-rgb)); }
+.skeleton::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, var(--sheen), transparent);
+  transform: translateX(-100%);
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse2 {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+.animate-fade-up { animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) both; }
+.animate-pulse2  { animation: pulse2 2s ease-in-out infinite; }
