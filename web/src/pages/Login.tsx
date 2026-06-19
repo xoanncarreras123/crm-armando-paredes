@@ -1,8 +1,10 @@
 import { useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 
 export function Login() {
   const { login } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -14,6 +16,7 @@ export function Login() {
     setLoading(true);
     try {
       await login(email, password);
+      navigate("/", { replace: true });
     } catch (err: unknown) {
       setError(
         err instanceof Error ? err.message : "Error al iniciar sesión",

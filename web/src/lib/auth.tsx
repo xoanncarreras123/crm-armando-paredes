@@ -5,7 +5,13 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import { api, ApiError } from "@/api/client";
+import { api, USE_MOCKS } from "@/api/client";
+
+// Credenciales de demo para modo mocks (sin backend).
+const DEMO_USERS: Record<string, AsesorSession> = {
+  "camila.rebaza@armandoparedes.pe": { sub: "demo-1", email: "camila.rebaza@armandoparedes.pe", nombre: "Camila Rebaza Higa" },
+  "rodrigo.velarde@armandoparedes.pe": { sub: "demo-2", email: "rodrigo.velarde@armandoparedes.pe", nombre: "Rodrigo Velarde Mendoza" },
+};
 
 // ============================================================================
 // Auth — JWT session para el CRM Armando Paredes
@@ -31,6 +37,9 @@ function readSession(): AsesorSession | null {
   try {
     const token = localStorage.getItem(STORAGE_KEY);
     if (!token) return null;
+    if (token === "demo-token") {
+      return DEMO_USERS["camila.rebaza@armandoparedes.pe"] ?? null;
+    }
     const [, payload] = token.split(".");
     return JSON.parse(atob(payload)) as AsesorSession;
   } catch {
@@ -42,6 +51,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<AsesorSession | null>(readSession);
 
   const login = useCallback(async (email: string, password: string) => {
+    if (USE_MOCKS) {
+      // Modo demo: acepta cualquier contraseña para los usuarios de demo.
+      const demo = DEMO_USERS[email.toLowerCase()];
+      if (!demo || password.length < 4) throw new Error("Credenciales inválidas");
+      localStorage.setItem(STORAGE_KEY, "demo-token");
+      setSession(demo);
+      return;
+    }
     const { token, asesor } = await api<{ token: string; asesor: AsesorSession }>(
       "/auth/login",
       {
