@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --accent-rgb: 232, 197, 71;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-bg text-ink font-sans antialiased;
+  font-feature-settings: "ss01", "cv01";
+}
+
+/* Scrollbars discretas, acordes al dark premium */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+}
+
+@layer components {
+  /* Micro-label en mayúsculas: el sello "Linear" de las secciones */
+  .label {
+    @apply text-2xs font-semibold uppercase text-ink-faint;
+  }
+  .card {
+    @apply rounded-card border border-border bg-surface;
+  }
+  .card-hover {
+    @apply transition-all duration-150 hover:border-border-strong hover:bg-raised;
+  }
+  /* Skeleton de carga con barrido */
+  .skeleton {
+    @apply relative overflow-hidden bg-raised;
+  }
+  .skeleton::after {
+    content: "";
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.04),
+      transparent
+    );
+    transform: translateX(-100%);
+    animation: shimmer 1.4s infinite;
+  }
+}

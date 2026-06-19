@@ -1,0 +1,421 @@
+// ============================================================================
+// CRM Inmobiliario — Armando Paredes
+// Desarrolladora residencial Lima Top (San Isidro, Miraflores, Barranco)
+// Ticket promedio: US$200K–US$800K
+//
+// Stack: PostgreSQL + Prisma ORM
+// Convención: montos en Decimal(12,2) (USD), fechas en UTC, soft-state vía enums.
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Prisma 7: la URL de conexión se define en prisma.config.ts, no aquí.
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+/// Línea de negocio a la que pertenece el proyecto.
+enum LineaNegocio {
+  VENTA_VIVIENDA // Departamentos, lofts, townhouses
+  RENTA_INMOBILIARIA // Oficinas, hoteles
+  DESARROLLO_TERCEROS // Proyectos llave en mano para terceros
+}
+
+/// Tipología de la unidad inmobiliaria.
+enum TipoUnidad {
+  DEPARTAMENTO
+  LOFT
+  TOWNHOUSE
+  OFICINA
+  HOTEL
+}
+
+/// Estado comercial/constructivo del proyecto.
+enum EstadoProyecto {
+  EN_VENTA
+  EN_CONSTRUCCION
+  ENTREGADO
+}
+
+/// Disponibilidad comercial de una unidad.
+enum EstadoUnidad {
+  DISPONIBLE
+  RESERVADA
+  VENDIDA
+}
+
+/// Vista predominante de la unidad (premium pricing driver en Lima Top).
+enum VistaUnidad {
+  MAR
+  PARQUE
+  CIUDAD
+  INTERIOR
+}
+
+/// Canal por el que ingresó el prospecto.
+enum FuenteProspecto {
+  INSTAGRAM
+  URBANIA
+  WHATSAPP
+  REFERIDO
+  FERIA
+  WEB // Formulario de la web propia
+}
+
+/// Intención de compra del prospecto.
+enum TipoCompra {
+  VIVIENDA
+  INVERSION
+}
+
+/// Vínculo del contacto adicional con el prospecto principal.
+enum TipoContacto {
+  CONYUGE
+  SOCIO
+  FAMILIAR
+  OTRO
+}
+
+/// Canal de una interacción registrada.
+enum TipoInteraccion {
+  WHATSAPP
+  EMAIL
+  VISITA
+  LLAMADA
+}
+
+/// Etapas del pipeline comercial (ordenadas).
+enum EtapaPipeline {
+  NUEVO
+  CONTACTADO
+  CALIFICADO
+  VISITA_AGENDADA
+  PROPUESTA
+  NEGOCIACION
+  RESERVA
+  CERRADO_GANADO
+  CERRADO_PERDIDO
+}
+
+/// Estado del ciclo de vida de una reserva (separación).
+enum EstadoReserva {
+  ACTIVA // Separación vigente
+  VENCIDA // Pasó el plazo sin convertir
+  CONVERTIDA // Se transformó en venta
+  CANCELADA // El cliente desistió
+}
+
+/// Forma de pago pactada en la venta.
+enum FormaPago {
+  CONTADO
+  CREDITO_HIPOTECARIO
+  MIXTO
+}
+
+/// Estado de pago del incentivo de un referido.
+enum EstadoIncentivo {
+  PENDIENTE
+  APROBADO
+  PAGADO
+  RECHAZADO
+}
+
+/// Estado de procesamiento de un mensaje entrante en la cola.
+enum EstadoMensaje {
+  PENDIENTE
+  PROCESADO
+  ERROR
+}
+
+/// Canal de origen de un mensaje entrante.
+enum CanalMensaje {
+  WHATSAPP
+  FORMULARIO_WEB
+  URBANIA
+}
+
+// ============================================================================
+// MODELOS
+// ============================================================================
+
+/// Asesor comercial. Atiende oportunidades y se asigna a uno o más proyectos.
+model Asesor {
+  id           String   @id @default(cuid())
+  nombre       String
+  email        String   @unique
+  telefono     String?
+  passwordHash String? // Bcrypt — para login JWT
+  activo       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relaciones
+  proyectos     Proyecto[]    @relation("AsesorProyectos") // M:N implícito
+  oportunidades Oportunidad[]
+  interacciones Interaccion[]
+
+  @@index([activo])
+  @@map("asesores")
+}
+
+/// Proyecto inmobiliario. Agrupa unidades y pertenece a una línea de negocio.
+model Proyecto {
+  id           String         @id @default(cuid())
+  nombre       String
+  linea        LineaNegocio
+  distrito     String // San Isidro, Miraflores, Barranco...
+  direccion    String?
+  estado       EstadoProyecto @default(EN_CONSTRUCCION)
+  fechaEntrega DateTime? // Entrega estimada / real
+  avanceObra   Int            @default(0) // % de avance [0..100]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  // Relaciones
+  unidades      Unidad[]
+  asesores      Asesor[]      @relation("AsesorProyectos")
+  oportunidades Oportunidad[]
+  referidos     Referido[]
+
+  @@index([estado])
+  @@index([linea])
+  @@index([distrito])
+  @@map("proyectos")
+}
+
+/// Unidad inmobiliaria vendible dentro de un proyecto.
+model Unidad {
+  id               String       @id @default(cuid())
+  proyectoId       String
+  piso             Int
+  numero           String // "1201", "PH-A"
+  area             Decimal      @db.Decimal(8, 2) // m²
+  dormitorios      Int
+  banos            Int          @default(1)
+  precio           Decimal      @db.Decimal(12, 2) // USD
+  estado           EstadoUnidad @default(DISPONIBLE)
+  vista            VistaUnidad  @default(INTERIOR)
+  tieneTerraza     Boolean      @default(false)
+  estacionamientos Int          @default(0)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  // Relaciones
+  proyecto      Proyecto      @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  reservas      Reserva[]
+  oportunidades Oportunidad[] @relation("UnidadesDeInteres") // M:N implícito
+
+  @@unique([proyectoId, numero]) // No se repite número de unidad por proyecto
+  @@index([estado])
+  @@index([proyectoId, estado])
+  @@index([precio])
+  @@map("unidades")
+}
+
+/// Prospecto (lead). Persona interesada; raíz de contactos, interacciones y score.
+model Prospecto {
+  id                  String          @id @default(cuid())
+  nombre              String
+  email               String?
+  telefono            String // WhatsApp/celular: principal canal en Perú
+  fuente              FuenteProspecto
+  tipoCompra          TipoCompra      @default(VIVIENDA)
+  presupuesto         Decimal?        @db.Decimal(12, 2) // USD
+  hipotecaPreAprobada Boolean         @default(false)
+  hipotecaVenceEl     DateTime? // Vencimiento de la pre-aprobación (alertas/score)
+  fechaMudanzaEst     DateTime? // Cuándo planea mudarse / tomar posesión
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  // Relaciones
+  contactos          ContactoAdicional[]
+  interacciones      Interaccion[]
+  scoreEventos       ScoreEvento[]
+  oportunidades      Oportunidad[]
+  referidosHechos    Referido[]          @relation("ReferidoPor") // referencias que originó
+  referidosRecibidos Referido[]          @relation("ReferidoNuevo") // veces que fue referido
+
+  @@index([fuente])
+  @@index([tipoCompra])
+  @@index([telefono])
+  @@map("prospectos")
+}
+
+/// Contacto secundario asociado a un prospecto (cónyuge, socio inversionista).
+model ContactoAdicional {
+  id          String       @id @default(cuid())
+  prospectoId String
+  nombre      String
+  email       String?
+  telefono    String?
+  relacion    TipoContacto
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  prospecto Prospecto @relation(fields: [prospectoId], references: [id], onDelete: Cascade)
+
+  @@index([prospectoId])
+  @@map("contactos_adicionales")
+}
+
+/// Registro de cada toque comercial con el prospecto.
+model Interaccion {
+  id            String          @id @default(cuid())
+  prospectoId   String
+  oportunidadId String? // Opcional: interacción dentro de un deal puntual
+  asesorId      String? // Quién atendió
+  tipo          TipoInteraccion
+  fecha         DateTime        @default(now())
+  resumen       String // Nota libre del asesor
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  prospecto   Prospecto    @relation(fields: [prospectoId], references: [id], onDelete: Cascade)
+  oportunidad Oportunidad? @relation(fields: [oportunidadId], references: [id], onDelete: SetNull)
+  asesor      Asesor?      @relation(fields: [asesorId], references: [id], onDelete: SetNull)
+
+  @@index([prospectoId, fecha])
+  @@index([oportunidadId])
+  @@index([fecha])
+  @@map("interacciones")
+}
+
+/// Evento de scoring. Bitácora auditable del lead scoring (con explicación NL).
+model ScoreEvento {
+  id              String   @id @default(cuid())
+  prospectoId     String
+  oportunidadId   String? // Score puede vivir a nivel de deal
+  accion          String // "Asistió a visita", "No respondió en 7 días"...
+  puntos          Int // Delta aplicado (+/-)
+  scoreResultante Int // Score acumulado luego de aplicar el delta
+  explicacion     String // Texto en lenguaje natural para el asesor
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  prospecto   Prospecto    @relation(fields: [prospectoId], references: [id], onDelete: Cascade)
+  oportunidad Oportunidad? @relation(fields: [oportunidadId], references: [id], onDelete: SetNull)
+
+  @@index([prospectoId, createdAt])
+  @@index([oportunidadId])
+  @@index([scoreResultante])
+  @@map("score_eventos")
+}
+
+/// Oportunidad (deal). Cruce prospecto × proyecto, con etapa, score y asesor.
+model Oportunidad {
+  id              String        @id @default(cuid())
+  prospectoId     String
+  proyectoId      String
+  asesorId        String?
+  etapa           EtapaPipeline @default(NUEVO)
+  score           Int           @default(0) // Score actual del deal
+  valorEstimado   Decimal?      @db.Decimal(12, 2) // Pronóstico de cierre (USD)
+  ultimaActividad DateTime      @default(now()) // Para alertas de inactividad
+  motivoPerdida   String? // Si CERRADO_PERDIDO
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relaciones
+  prospecto       Prospecto     @relation(fields: [prospectoId], references: [id], onDelete: Cascade)
+  proyecto        Proyecto      @relation(fields: [proyectoId], references: [id], onDelete: Restrict)
+  asesor          Asesor?       @relation(fields: [asesorId], references: [id], onDelete: SetNull)
+  unidadesInteres Unidad[]      @relation("UnidadesDeInteres") // M:N implícito
+  interacciones   Interaccion[]
+  scoreEventos    ScoreEvento[]
+  reservas        Reserva[]
+
+  @@index([etapa])
+  @@index([score])
+  @@index([etapa, score])
+  @@index([asesorId, etapa])
+  @@index([ultimaActividad])
+  @@map("oportunidades")
+}
+
+/// Reserva / separación de una unidad específica sobre una oportunidad.
+model Reserva {
+  id              String        @id @default(cuid())
+  oportunidadId   String
+  unidadId        String
+  fecha           DateTime      @default(now())
+  montoSeparacion Decimal       @db.Decimal(12, 2) // USD
+  vencimiento     DateTime? // Plazo para convertir a venta
+  estado          EstadoReserva @default(ACTIVA)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  oportunidad Oportunidad @relation(fields: [oportunidadId], references: [id], onDelete: Cascade)
+  unidad      Unidad      @relation(fields: [unidadId], references: [id], onDelete: Restrict)
+  venta       Venta? // 1:1 — una reserva se cierra en una venta
+
+  @@index([estado])
+  @@index([unidadId])
+  @@index([oportunidadId])
+  @@map("reservas")
+}
+
+/// Venta cerrada. Nace de una reserva convertida. Registro contable/legal.
+model Venta {
+  id             String    @id @default(cuid())
+  reservaId      String    @unique // 1:1 con la reserva
+  precioFinal    Decimal   @db.Decimal(12, 2) // USD (puede diferir del precio lista)
+  formaPago      FormaPago
+  fechaEscritura DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  reserva Reserva @relation(fields: [reservaId], references: [id], onDelete: Restrict)
+
+  @@index([fechaEscritura])
+  @@map("ventas")
+}
+
+/// Referido. Un prospecto refiere a otro hacia un proyecto, con un incentivo.
+model Referido {
+  id              String          @id @default(cuid())
+  referidoPorId   String // Prospecto que refiere
+  referidoNuevoId String // Prospecto referido (nuevo lead)
+  proyectoId      String?
+  incentivo       Decimal?        @db.Decimal(12, 2) // Monto del incentivo (USD)
+  estadoIncentivo EstadoIncentivo @default(PENDIENTE)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  referidoPor   Prospecto @relation("ReferidoPor", fields: [referidoPorId], references: [id], onDelete: Cascade)
+  referidoNuevo Prospecto @relation("ReferidoNuevo", fields: [referidoNuevoId], references: [id], onDelete: Cascade)
+  proyecto      Proyecto? @relation(fields: [proyectoId], references: [id], onDelete: SetNull)
+
+  @@unique([referidoPorId, referidoNuevoId]) // Evita registrar el mismo referido 2x
+  @@index([estadoIncentivo])
+  @@map("referidos")
+}
+
+/// Bandeja de entrada. El webhook encola aquí; un job la procesa cada hora.
+/// Desacopla la recepción (rápida, idempotente) del procesamiento (crear
+/// prospecto, interacción, scoring) para no perder mensajes ante picos o fallos.
+model MensajeEntrante {
+  id          String        @id @default(cuid())
+  canal       CanalMensaje
+  telefono    String? // Remitente (WhatsApp)
+  email       String?
+  nombre      String?
+  contenido   String? // Texto del mensaje / resumen
+  payload     Json // Payload crudo del proveedor (n8n, Urbania)
+  externalId  String? // ID del proveedor para idempotencia
+  estado      EstadoMensaje @default(PENDIENTE)
+  intentos    Int           @default(0)
+  error       String? // Último error de procesamiento
+  procesadoEn DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([canal, externalId]) // Idempotencia: no procesar 2x el mismo evento
+  @@index([estado, createdAt])
+  @@map("mensajes_entrantes")
+}
