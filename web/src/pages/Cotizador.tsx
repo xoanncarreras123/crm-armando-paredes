@@ -4,7 +4,7 @@ import { useProspecto, useProspectos, useUnidades } from "@/api/hooks";
 import type { Unidad } from "@/api/types";
 import { EtapaBadge } from "@/components/ui/EtapaBadge";
 import { IconBolt, IconCopy, IconCotizador, IconWhatsapp } from "@/components/ui/icons";
-import { usdShort } from "@/lib/format";
+import { useMoney } from "@/lib/prefs";
 import { PARAMS_DEFAULT, type ParamsFinanciamiento } from "@/lib/cotizador";
 import { generarCotizacionIA, resumenTexto, type Cotizacion } from "@/lib/cotizadorIA";
 import { descargarCotizacionPDF } from "@/lib/cotizacionPdf";
@@ -24,6 +24,7 @@ export function Cotizador() {
   const [cot, setCot] = useState<Cotizacion | null>(null);
   const [vacio, setVacio] = useState(false);
   const [copiado, setCopiado] = useState(false);
+  const money = useMoney();
 
   async function generar() {
     if (!prospecto || !unidades) return;
@@ -105,7 +106,7 @@ export function Cotizador() {
               <div className="label mb-1">Contexto leído</div>
               <Row k="Etapa" v={<EtapaBadge etapa={prospecto.etapa} />} />
               <Row k="Tipo de compra" v={prospecto.calificacion.tipoCompra === "VIVIENDA" ? "Vivienda" : "Inversión"} />
-              <Row k="Presupuesto" v={usdShort(prospecto.calificacion.presupuesto)} />
+              <Row k="Presupuesto" v={money.short(prospecto.calificacion.presupuesto)} />
               <Row
                 k="Hipoteca"
                 v={prospecto.calificacion.hipotecaPreAprobada ? "Pre-aprobada" : "Sin aprobar"}
@@ -202,6 +203,7 @@ function Resultado({
   copiado: boolean;
 }) {
   const f = cot.finanzas;
+  const money = useMoney();
   return (
     <div className="animate-fade-up space-y-4">
       {/* Unidad recomendada + rationale */}
@@ -218,7 +220,7 @@ function Resultado({
             </div>
           </div>
           <div className="text-right">
-            <div className="font-display text-2xl font-extrabold text-gold">{usdShort(f.precio)}</div>
+            <div className="font-display text-2xl font-extrabold text-gold">{money.short(f.precio)}</div>
             <div className="text-2xs text-ink-faint">precio de lista</div>
           </div>
         </div>
@@ -232,18 +234,18 @@ function Resultado({
       <div className="card p-5">
         <div className="label mb-3">Plan de pago</div>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <Cifra label="Separación" valor={usdShort(f.separacion)} />
-          <Cifra label={`Cuota inicial · ${Math.round(f.cuotaInicialPct * 100)}%`} valor={usdShort(f.cuotaInicial)} />
-          <Cifra label="A financiar" valor={usdShort(f.montoFinanciar)} />
-          <Cifra label="Cuota mensual" valor={usdShort(f.cuotaMensual)} destacar />
+          <Cifra label="Separación" valor={money.short(f.separacion)} />
+          <Cifra label={`Cuota inicial · ${Math.round(f.cuotaInicialPct * 100)}%`} valor={money.short(f.cuotaInicial)} />
+          <Cifra label="A financiar" valor={money.short(f.montoFinanciar)} />
+          <Cifra label="Cuota mensual" valor={money.short(f.cuotaMensual)} destacar />
         </div>
 
         {/* Cronograma */}
         <div className="mt-5 space-y-2">
           {[
-            { t: "Separación", m: usdShort(f.separacion), c: "Hoy · reserva la unidad" },
-            { t: "Cuota inicial (resto)", m: usdShort(f.cuotaInicial - f.separacion), c: "A la firma de minuta" },
-            { t: `${f.meses} cuotas mensuales`, m: `${usdShort(f.cuotaMensual)}/mes`, c: `${f.meses / 12} años · TCEA ${f.tceaPct}%` },
+            { t: "Separación", m: money.short(f.separacion), c: "Hoy · reserva la unidad" },
+            { t: "Cuota inicial (resto)", m: money.short(f.cuotaInicial - f.separacion), c: "A la firma de minuta" },
+            { t: `${f.meses} cuotas mensuales`, m: `${money.short(f.cuotaMensual)}/mes`, c: `${f.meses / 12} años · TCEA ${f.tceaPct}%` },
           ].map((s, i) => (
             <div key={i} className="flex items-center gap-3 rounded-lg border border-border bg-bg/40 p-3">
               <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-raised font-display text-xs font-bold text-ink-muted">
@@ -334,16 +336,19 @@ function Cifra({ label, valor, destacar }: { label: string; valor: string; desta
   );
 }
 
-const Alt = ({ u }: { u: Unidad }) => (
-  <div className="flex items-center gap-3 rounded-lg border border-border bg-bg/40 p-3">
-    <div className="grid h-9 w-9 place-items-center rounded-md bg-raised font-display text-sm font-bold">{u.numero}</div>
-    <div className="min-w-0 flex-1 text-sm">
-      <div className="font-medium">{u.dormitorios} dorm · {u.area} m²</div>
-      <div className="text-xs text-ink-faint capitalize">vista {u.vista.toLowerCase()}</div>
+const Alt = ({ u }: { u: Unidad }) => {
+  const money = useMoney();
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-border bg-bg/40 p-3">
+      <div className="grid h-9 w-9 place-items-center rounded-md bg-raised font-display text-sm font-bold">{u.numero}</div>
+      <div className="min-w-0 flex-1 text-sm">
+        <div className="font-medium">{u.dormitorios} dorm · {u.area} m²</div>
+        <div className="text-xs text-ink-faint capitalize">vista {u.vista.toLowerCase()}</div>
+      </div>
+      <span className="font-display text-sm font-bold tabular-nums">{money.short(u.precio)}</span>
     </div>
-    <span className="font-display text-sm font-bold tabular-nums">{usdShort(u.precio)}</span>
-  </div>
-);
+  );
+};
 
 const Chip = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) => (
   <button

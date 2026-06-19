@@ -1,6 +1,6 @@
 import { usePipeline } from "@/api/hooks";
 import type { EtapaPipeline, Oportunidad } from "@/api/types";
-import { usdShort } from "@/lib/format";
+import { useMoney } from "@/lib/prefs";
 import { Avatar } from "@/components/ui/Avatar";
 import { ScoreBadge } from "@/components/ui/ScoreBadge";
 import { IconBolt, IconClock } from "@/components/ui/icons";
@@ -16,6 +16,7 @@ const COLUMNAS: { key: string; titulo: string; etapas: EtapaPipeline[] }[] = [
 
 export function PipelineKanban() {
   const { data, isLoading } = usePipeline();
+  const money = useMoney();
 
   return (
     <section>
@@ -40,7 +41,7 @@ export function PipelineKanban() {
                     {deals.length}
                   </span>
                 </div>
-                <span className="text-2xs font-medium text-ink-faint">{usdShort(suma)}</span>
+                <span className="text-2xs font-medium text-ink-faint">{money.short(suma)}</span>
               </div>
 
               <div className="flex flex-col gap-2.5">
@@ -64,6 +65,7 @@ export function PipelineKanban() {
 }
 
 function DealCard({ deal, index }: { deal: Oportunidad; index: number }) {
+  const money = useMoney();
   const estancado = deal.diasEnEtapa >= 21;
   return (
     <article
@@ -81,7 +83,7 @@ function DealCard({ deal, index }: { deal: Oportunidad; index: number }) {
 
       <div className="mt-3 flex items-center justify-between">
         <span className="font-display text-base font-bold tabular-nums text-ink">
-          {usdShort(deal.valorEstimado)}
+          {money.short(deal.valorEstimado)}
         </span>
         <span
           className={`inline-flex items-center gap-1 text-2xs font-medium ${

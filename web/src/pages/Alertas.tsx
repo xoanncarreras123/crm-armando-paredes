@@ -5,9 +5,9 @@ import { ScoreBadge } from "@/components/ui/ScoreBadge";
 import { IconAlertas, IconBolt, IconClock } from "@/components/ui/icons";
 
 const META: Record<TipoAlerta, { label: string; hex: string; Icon: typeof IconBolt }> = {
-  SENAL_CIERRE: { label: "Señales de cierre", hex: "#E8C547", Icon: IconBolt },
-  CHURN: { label: "Riesgo de fuga", hex: "#E86060", Icon: IconAlertas },
-  RENOVACION: { label: "Por vencer", hex: "#5B8EF0", Icon: IconClock },
+  SENAL_CIERRE: { label: "Señales de cierre", hex: "#D4A574", Icon: IconBolt },
+  CHURN: { label: "Riesgo de fuga", hex: "#E07856", Icon: IconAlertas },
+  RENOVACION: { label: "Por vencer", hex: "#7C9CC6", Icon: IconClock },
 };
 const ORDEN: TipoAlerta[] = ["SENAL_CIERRE", "CHURN", "RENOVACION"];
 
@@ -62,7 +62,7 @@ function AlertRow({ a, index, onClick }: { a: Alerta; index: number; onClick: ()
       style={{
         animationDelay: `${index * 40}ms`,
         background: esCierre ? "rgba(232,197,71,0.06)" : undefined,
-        borderColor: esCierre ? "rgba(232,197,71,0.3)" : "rgba(255,255,255,0.07)",
+        borderColor: esCierre ? "rgba(212,165,116,0.3)" : "var(--border)",
       }}
     >
       <ScoreBadge score={a.score} size="lg" />

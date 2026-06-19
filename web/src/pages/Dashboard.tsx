@@ -2,6 +2,7 @@ import { DailyBriefing } from "@/components/dashboard/DailyBriefing";
 import { MetricsRow } from "@/components/dashboard/MetricsRow";
 import { PipelineKanban } from "@/components/dashboard/PipelineKanban";
 import { AlertsPanel } from "@/components/dashboard/AlertsPanel";
+import { MiEspacio } from "@/components/dashboard/MiEspacio";
 
 export function Dashboard() {
   return (
@@ -13,6 +14,7 @@ export function Dashboard() {
         <div className="space-y-5 xl:col-span-9">
           <MetricsRow />
           <PipelineKanban />
+          <MiEspacio />
         </div>
         <div className="xl:col-span-3">
           <AlertsPanel />

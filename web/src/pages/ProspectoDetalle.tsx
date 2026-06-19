@@ -16,14 +16,15 @@ import {
   IconVisit,
   IconWhatsapp,
 } from "@/components/ui/icons";
-import { fecha, relativeTime, usdShort } from "@/lib/format";
+import { fecha, relativeTime } from "@/lib/format";
+import { useMoney } from "@/lib/prefs";
 import { scoreTone, TONE_HEX } from "@/lib/score";
 
 const CANAL: Record<TipoInteraccion, { Icon: typeof IconWhatsapp; hex: string }> = {
-  WHATSAPP: { Icon: IconWhatsapp, hex: "#3EC898" },
-  EMAIL: { Icon: IconMail, hex: "#5B8EF0" },
-  VISITA: { Icon: IconVisit, hex: "#E8C547" },
-  LLAMADA: { Icon: IconCall, hex: "#9BA1AD" },
+  WHATSAPP: { Icon: IconWhatsapp, hex: "#6FB8A8" },
+  EMAIL: { Icon: IconMail, hex: "#7C9CC6" },
+  VISITA: { Icon: IconVisit, hex: "#D4A574" },
+  LLAMADA: { Icon: IconCall, hex: "#9CA0A8" },
 };
 
 export function ProspectoDetalle() {
@@ -64,6 +65,7 @@ export function ProspectoDetalle() {
 function Izquierda({ p, onGenerar }: { p: ProspectoDetalle; onGenerar: () => void }) {
   const cal = p.calificacion;
   const nav = useNavigate();
+  const money = useMoney();
   return (
     <div className="space-y-4">
       {/* Identidad */}
@@ -107,7 +109,7 @@ function Izquierda({ p, onGenerar }: { p: ProspectoDetalle; onGenerar: () => voi
         <div className="label mb-3">Calificación</div>
         <dl className="grid grid-cols-2 gap-3 text-sm">
           <Dato label="Tipo de compra" valor={cal.tipoCompra === "VIVIENDA" ? "Vivienda" : "Inversión"} />
-          <Dato label="Presupuesto" valor={usdShort(cal.presupuesto)} />
+          <Dato label="Presupuesto" valor={money.short(cal.presupuesto)} />
           <Dato
             label="Hipoteca"
             valor={cal.hipotecaPreAprobada ? "Pre-aprobada" : "Sin aprobar"}
@@ -155,7 +157,7 @@ function Izquierda({ p, onGenerar }: { p: ProspectoDetalle; onGenerar: () => voi
                 </div>
                 <div className="text-xs text-ink-faint capitalize">{u.estado.toLowerCase()}</div>
               </div>
-              <span className="font-display text-sm font-bold tabular-nums">{usdShort(u.precio)}</span>
+              <span className="font-display text-sm font-bold tabular-nums">{money.short(u.precio)}</span>
             </div>
           ))}
         </div>
@@ -185,7 +187,7 @@ function Izquierda({ p, onGenerar }: { p: ProspectoDetalle; onGenerar: () => voi
 }
 
 function Dato({ label, valor, tono }: { label: string; valor: string; tono?: "green" | "red" }) {
-  const hex = tono === "green" ? "#3EC898" : tono === "red" ? "#E86060" : undefined;
+  const hex = tono === "green" ? "#6FB8A8" : tono === "red" ? "#E07856" : undefined;
   return (
     <div>
       <dt className="text-2xs uppercase tracking-wide text-ink-faint">{label}</dt>

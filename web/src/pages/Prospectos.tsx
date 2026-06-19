@@ -5,7 +5,8 @@ import type { EtapaPipeline } from "@/api/types";
 import { Avatar } from "@/components/ui/Avatar";
 import { ScoreBadge } from "@/components/ui/ScoreBadge";
 import { EtapaBadge } from "@/components/ui/EtapaBadge";
-import { relativeTime, usdShort } from "@/lib/format";
+import { relativeTime } from "@/lib/format";
+import { useMoney } from "@/lib/prefs";
 
 const FILTROS: { key: "TODOS" | EtapaPipeline; label: string }[] = [
   { key: "TODOS", label: "Todos" },
@@ -20,6 +21,7 @@ export function Prospectos() {
   const { data, isLoading } = useProspectos();
   const [filtro, setFiltro] = useState<(typeof FILTROS)[number]["key"]>("TODOS");
   const nav = useNavigate();
+  const money = useMoney();
 
   const rows = useMemo(
     () => (data ?? []).filter((p) => filtro === "TODOS" || p.etapa === filtro),
@@ -85,7 +87,7 @@ export function Prospectos() {
                   <div className="truncate text-xs text-ink-faint">{p.asesor}</div>
                 </div>
                 <div className="font-display text-sm font-bold tabular-nums text-ink">
-                  {usdShort(p.valorEstimado)}
+                  {money.short(p.valorEstimado)}
                 </div>
                 <div className="text-xs text-ink-faint">{relativeTime(p.ultimaActividad)}</div>
               </button>

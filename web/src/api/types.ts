@@ -89,7 +89,12 @@ export interface ScoreEvento {
 }
 
 export type Urgencia = "ALTA" | "MEDIA" | "BAJA";
-export type EstadoUnidad = "DISPONIBLE" | "RESERVADA" | "VENDIDA";
+export type EstadoUnidad =
+  | "DISPONIBLE"
+  | "NEGOCIACION"
+  | "BLOQUEADO"
+  | "ENTREGA"
+  | "VENDIDA";
 export type VistaUnidad = "MAR" | "PARQUE" | "CIUDAD" | "INTERIOR";
 export type TipoContacto = "CONYUGE" | "SOCIO" | "FAMILIAR" | "OTRO";
 export type EstadoProyecto = "EN_VENTA" | "EN_CONSTRUCCION" | "ENTREGADO";
@@ -189,10 +194,13 @@ export interface Unidad {
   area: number;
   dormitorios: number;
   banos: number;
-  precio: number;
+  precio: number; // USD
   estado: EstadoUnidad;
   vista: VistaUnidad;
   tieneTerraza: boolean;
   estacionamientos: number;
   interesados: number;
+  tipologia: string;
+  tienePlano: boolean;
+  propietario?: string; // visible solo para backoffice
 }

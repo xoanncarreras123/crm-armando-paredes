@@ -10,9 +10,9 @@ export function scoreTone(score: number): ScoreTone {
 }
 
 export const TONE_HEX: Record<ScoreTone, string> = {
-  red: "#E86060",
-  gold: "#E8C547",
-  green: "#3EC898",
+  red: "#E07856", // terracota
+  gold: "#D4A574", // oro
+  green: "#6FB8A8", // aqua
 };
 
 export function scoreLabel(score: number): string {

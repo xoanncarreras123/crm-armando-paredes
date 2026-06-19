@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useMetrics } from "@/api/hooks";
-import { penShort, pct } from "@/lib/format";
+import { pct } from "@/lib/format";
+import { useMoney } from "@/lib/prefs";
 import { IconArrowDown, IconArrowUp, IconClock } from "@/components/ui/icons";
 import { Sparkline } from "./Sparkline";
 
@@ -73,6 +74,7 @@ function Metric({
 
 export function MetricsRow() {
   const { data, isLoading } = useMetrics();
+  const money = useMoney();
 
   if (isLoading || !data) {
     return (
@@ -88,17 +90,17 @@ export function MetricsRow() {
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <Metric
         label="Pipeline total"
-        value={penShort(data.pipelineTotal)}
+        value={money.short(data.pipelineTotal)}
         delta={{ value: pct(data.pipelineDeltaPct), good: data.pipelineDeltaPct >= 0 }}
         context="Valor de deals activos · vs. mes anterior"
-        spark={{ data: SERIES.pipeline, color: "#E8C547" }}
+        spark={{ data: SERIES.pipeline, color: "#D4A574" }}
       />
       <Metric
         label="Tasa de cierre"
         value={pct(data.tasaCierre)}
         delta={{ value: pct(data.tasaCierreDeltaPct, true), good: data.tasaCierreDeltaPct >= 0 }}
         context="Ganados / total cerrados · últimos 90 días"
-        spark={{ data: SERIES.cierre, color: "#3EC898" }}
+        spark={{ data: SERIES.cierre, color: "#6FB8A8" }}
       />
       <Metric
         label="Tiempo promedio"
@@ -113,7 +115,7 @@ export function MetricsRow() {
           good: data.tiempoPromedioDeltaDias <= 0,
         }}
         context="De primer contacto a cierre"
-        spark={{ data: SERIES.tiempo, color: "#5B8EF0" }}
+        spark={{ data: SERIES.tiempo, color: "#7C9CC6" }}
       />
       <Metric
         label="Prospectos en riesgo"

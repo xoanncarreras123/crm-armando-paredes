@@ -1,22 +1,32 @@
 // Formateadores de moneda y números. El ticket es alto: abreviamos con criterio.
+// Núcleo agnóstico de símbolo; useMoney() inyecta US$ o S/ según la moneda activa.
+
+/** Compacto con símbolo arbitrario: "US$ 685K" · "S/ 2.57M". */
+export function fmtCompact(n: number | null, sym: string): string {
+  if (n == null) return "—";
+  if (n >= 1_000_000) return `${sym} ${(n / 1_000_000).toFixed(2)}M`;
+  if (n >= 1_000) return `${sym} ${Math.round(n / 1_000)}K`;
+  return `${sym} ${Math.round(n)}`;
+}
+
+/** Completo con separador de miles: "US$ 685,000" · "S/ 2,568,750". */
+export function fmtFull(n: number | null, sym: string): string {
+  if (n == null) return "—";
+  const locale = sym === "S/" ? "es-PE" : "en-US";
+  return `${sym} ${Math.round(n).toLocaleString(locale)}`;
+}
 
 export function usdShort(n: number | null): string {
-  if (n == null) return "—";
-  if (n >= 1_000_000) return `US$ ${(n / 1_000_000).toFixed(2)}M`;
-  if (n >= 1_000) return `US$ ${Math.round(n / 1_000)}K`;
-  return `US$ ${n}`;
+  return fmtCompact(n, "US$");
 }
 
 // Monto completo con separador de miles — para documentos formales (PDF).
 export function usdFull(n: number | null): string {
-  if (n == null) return "—";
-  return `US$ ${n.toLocaleString("en-US")}`;
+  return fmtFull(n, "US$");
 }
 
 export function penShort(n: number): string {
-  if (n >= 1_000_000) return `S/ ${(n / 1_000_000).toFixed(2)}M`;
-  if (n >= 1_000) return `S/ ${Math.round(n / 1_000)}K`;
-  return `S/ ${n}`;
+  return fmtCompact(n, "S/");
 }
 
 export function pct(n: number, signed = false): string {

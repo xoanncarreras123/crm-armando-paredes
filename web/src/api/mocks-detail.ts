@@ -1,4 +1,5 @@
 import type {
+  EstadoUnidad,
   ProspectoDetalle,
   ProspectoListItem,
   Proyecto,
@@ -45,7 +46,7 @@ const detalle: Record<string, ProspectoDetalle> = {
       { id: "c1", nombre: "María José Ferreyros", relacion: "CONYUGE", telefono: "+51991234568", email: "mjferreyros@gmail.com" },
     ],
     unidadesInteres: [
-      { id: "u1", numero: "1201", piso: 12, area: 142.5, precio: 685_000, estado: "RESERVADA", vista: "PARQUE" },
+      { id: "u1", numero: "1201", piso: 12, area: 142.5, precio: 685_000, estado: "BLOQUEADO", vista: "PARQUE" },
     ],
     interacciones: [
       { id: "i1", tipo: "WHATSAPP", fecha: dias(1), resumen: "Preguntó por el cronograma de pagos y la fecha de escritura.", asesor: "Camila Rebaza", senalCierre: true },
@@ -93,34 +94,75 @@ export function getProspectoDetalle(id: string): ProspectoDetalle {
 }
 
 export const mockProyectos: Proyecto[] = [
-  { id: "pr1", nombre: "Torre Basadre", distrito: "San Isidro", estado: "EN_VENTA", avanceObra: 45, fechaEntrega: "2027-03-31", totalUnidades: 24, disponibles: 11, reservadas: 4, vendidas: 9, ticketDesde: 268_000 },
-  { id: "pr2", nombre: "Malecón 28", distrito: "Barranco", estado: "EN_CONSTRUCCION", avanceObra: 20, fechaEntrega: "2027-12-15", totalUnidades: 18, disponibles: 14, reservadas: 2, vendidas: 2, ticketDesde: 540_000 },
-  { id: "pr3", nombre: "Pardo Business Center", distrito: "Miraflores", estado: "ENTREGADO", avanceObra: 100, fechaEntrega: "2025-09-01", totalUnidades: 12, disponibles: 3, reservadas: 1, vendidas: 8, ticketDesde: 312_000 },
+  { id: "pr1", nombre: "Torre Basadre", distrito: "San Isidro", estado: "EN_VENTA", avanceObra: 45, fechaEntrega: "2027-03-31", totalUnidades: 48, disponibles: 24, reservadas: 12, vendidas: 12, ticketDesde: 268_000 },
+  { id: "pr2", nombre: "Malecón 28", distrito: "Barranco", estado: "EN_CONSTRUCCION", avanceObra: 20, fechaEntrega: "2027-12-15", totalUnidades: 24, disponibles: 12, reservadas: 6, vendidas: 6, ticketDesde: 540_000 },
+  { id: "pr3", nombre: "Pardo Business Center", distrito: "Miraflores", estado: "ENTREGADO", avanceObra: 100, fechaEntrega: "2025-09-01", totalUnidades: 12, disponibles: 6, reservadas: 3, vendidas: 3, ticketDesde: 312_000 },
 ];
 
-// Inventario de Torre Basadre: 8 pisos × 3 unidades = 24.
-const VISTAS = ["PARQUE", "CIUDAD", "INTERIOR"] as const;
-export const mockUnidades: Record<string, Unidad[]> = {
-  pr1: Array.from({ length: 8 }, (_, p) => {
-    const piso = p + 5; // pisos 5–12
-    return ["01", "02", "03"].map((suf, j): Unidad => {
-      const idx = p * 3 + j;
-      const estado = idx % 7 === 0 ? "VENDIDA" : idx % 5 === 0 ? "RESERVADA" : "DISPONIBLE";
-      const dorm = j === 0 ? 3 : j === 1 ? 2 : 1;
-      return {
-        id: `pr1-${piso}${suf}`,
+// ---- Generador de inventario por edificio (USD base) ----
+const VISTAS = ["PARQUE", "CIUDAD", "INTERIOR", "MAR"] as const;
+const TIPOLOGIA: Record<number, string> = {
+  1: "Flat 1 dorm",
+  2: "Flat 2 dorm",
+  3: "Flat 3 dorm",
+};
+// Ciclo de estados determinista: mayoría disponible, con mezcla realista.
+const CICLO_ESTADO: EstadoUnidad[] = [
+  "DISPONIBLE", "DISPONIBLE", "VENDIDA", "DISPONIBLE", "NEGOCIACION",
+  "DISPONIBLE", "VENDIDA", "BLOQUEADO", "DISPONIBLE", "ENTREGA",
+  "DISPONIBLE", "VENDIDA",
+];
+const PROPIETARIOS = [
+  "Inmobiliaria GP7 SAC", "Fondo Larcomar", "C. Ferreyros", "J. Manchego",
+  "R. Castillo", "—",
+];
+
+interface GenOpts {
+  prefix: string;
+  pisoIni: number;
+  pisos: number;
+  perFloor: number;
+  basePrecio: number; // USD para 1 dorm en el piso más bajo
+}
+
+function genEdificio({ prefix, pisoIni, pisos, perFloor, basePrecio }: GenOpts): Unidad[] {
+  const out: Unidad[] = [];
+  let idx = 0;
+  for (let p = 0; p < pisos; p++) {
+    const piso = pisoIni + p;
+    for (let j = 0; j < perFloor; j++) {
+      const suf = String(j + 1).padStart(2, "0");
+      const dorm = j === 0 ? 3 : j === perFloor - 1 ? 1 : 2;
+      const area = dorm === 3 ? 138 + (p % 3) * 4 : dorm === 2 ? 92 + (p % 3) * 3 : 58 + (p % 2) * 4;
+      const estado = CICLO_ESTADO[idx % CICLO_ESTADO.length];
+      const precio = Math.round(
+        (basePrecio + (dorm - 1) * 110_000 + piso * 5_200) / 1000,
+      ) * 1000;
+      out.push({
+        id: `${prefix}-${piso}${suf}`,
         piso,
         numero: `${piso}${suf}`,
-        area: dorm === 3 ? 142 : dorm === 2 ? 98 : 76,
+        area,
         dormitorios: dorm,
-        banos: dorm === 1 ? 1 : dorm,
-        precio: (dorm === 3 ? 640 : dorm === 2 ? 420 : 268) * 1000 + piso * 4000,
+        banos: dorm === 1 ? 1 : dorm === 2 ? 2 : 3,
+        precio,
         estado,
-        vista: VISTAS[j],
-        tieneTerraza: j === 0,
+        vista: VISTAS[(j + p) % VISTAS.length],
+        tieneTerraza: j === 0 || p === pisos - 1,
         estacionamientos: dorm >= 2 ? 2 : 1,
-        interesados: estado === "DISPONIBLE" ? (idx % 4) : 0,
-      };
-    });
-  }).flat(),
+        interesados: estado === "DISPONIBLE" ? (idx * 3) % 5 : 0,
+        tipologia: p === pisos - 1 ? "Penthouse" : TIPOLOGIA[dorm],
+        tienePlano: idx % 3 === 0,
+        propietario: estado === "VENDIDA" ? PROPIETARIOS[idx % PROPIETARIOS.length] : undefined,
+      });
+      idx++;
+    }
+  }
+  return out;
+}
+
+export const mockUnidades: Record<string, Unidad[]> = {
+  pr1: genEdificio({ prefix: "pr1", pisoIni: 3, pisos: 12, perFloor: 4, basePrecio: 200_000 }),
+  pr2: genEdificio({ prefix: "pr2", pisoIni: 2, pisos: 8, perFloor: 3, basePrecio: 320_000 }),
+  pr3: genEdificio({ prefix: "pr3", pisoIni: 5, pisos: 6, perFloor: 2, basePrecio: 260_000 }),
 };

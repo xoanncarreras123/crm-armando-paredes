@@ -1,26 +1,32 @@
 import type { Config } from "tailwindcss";
 
 // Sistema de diseño — Armando Paredes CRM.
-// Dark premium (Linear/Vercel). Acento dorado usado con avaricia.
+// Premium adaptable (Linear/Vercel). Tokens vía variables CSS → light/dark.
+// Acento oro terracota usado con avaricia. Ver índice de variables en index.css.
+const c = (v: string) => `rgb(var(${v}) / <alpha-value>)`;
+const soft = (v: string) => `rgb(var(${v}) / 0.12)`;
+
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
+  darkMode: ["selector", '[data-theme="dark"]'],
   theme: {
     extend: {
       colors: {
-        bg: "#0B0D11",
-        surface: "#13161D",
-        raised: "#1A1E27", // superficie elevada (hover, popovers)
-        border: "rgba(255,255,255,0.07)",
-        "border-strong": "rgba(255,255,255,0.12)",
+        bg: c("--bg-rgb"),
+        surface: c("--surface-rgb"),
+        raised: c("--raised-rgb"), // superficie elevada (hover, popovers)
+        border: "var(--border)",
+        "border-strong": "var(--border-strong)",
         ink: {
-          DEFAULT: "#EDEFF3", // texto primario
-          muted: "#9BA1AD", // texto secundario
-          faint: "#5C6373", // texto terciario / labels
+          DEFAULT: c("--ink-rgb"), // texto primario
+          muted: c("--ink-muted-rgb"), // texto secundario
+          faint: c("--ink-faint-rgb"), // texto terciario / labels
         },
-        gold: { DEFAULT: "#E8C547", soft: "rgba(232,197,71,0.12)" },
-        green: { DEFAULT: "#3EC898", soft: "rgba(62,200,152,0.12)" },
-        red: { DEFAULT: "#E86060", soft: "rgba(232,96,96,0.12)" },
-        blue: { DEFAULT: "#5B8EF0", soft: "rgba(91,142,240,0.12)" },
+        gold: { DEFAULT: c("--gold-rgb"), soft: soft("--gold-rgb") },
+        green: { DEFAULT: c("--green-rgb"), soft: soft("--green-rgb") },
+        red: { DEFAULT: c("--red-rgb"), soft: soft("--red-rgb") },
+        blue: { DEFAULT: c("--blue-rgb"), soft: soft("--blue-rgb") },
+        violet: { DEFAULT: c("--violet-rgb"), soft: soft("--violet-rgb") },
       },
       fontFamily: {
         display: ['"Syne"', "system-ui", "sans-serif"],

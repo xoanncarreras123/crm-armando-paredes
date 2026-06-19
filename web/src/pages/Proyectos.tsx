@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { useProyectos } from "@/api/hooks";
 import type { EstadoProyecto, Proyecto } from "@/api/types";
-import { usdShort } from "@/lib/format";
+import { useMoney } from "@/lib/prefs";
 
 const ESTADO: Record<EstadoProyecto, { label: string; hex: string }> = {
-  EN_VENTA: { label: "En venta", hex: "#3EC898" },
-  EN_CONSTRUCCION: { label: "En construcción", hex: "#E8C547" },
-  ENTREGADO: { label: "Entregado", hex: "#5B8EF0" },
+  EN_VENTA: { label: "En venta", hex: "#6FB8A8" },
+  EN_CONSTRUCCION: { label: "En construcción", hex: "#D4A574" },
+  ENTREGADO: { label: "Entregado", hex: "#7C9CC6" },
 };
 
 export function Proyectos() {
@@ -31,6 +31,7 @@ export function Proyectos() {
 
 function ProyectoCard({ pr, index, onClick }: { pr: Proyecto; index: number; onClick: () => void }) {
   const e = ESTADO[pr.estado];
+  const money = useMoney();
   const pctVendido = Math.round((pr.vendidas / pr.totalUnidades) * 100);
   return (
     <button
@@ -69,9 +70,9 @@ function ProyectoCard({ pr, index, onClick }: { pr: Proyecto; index: number; onC
           <span>{pctVendido}% vendido</span>
         </div>
         <div className="flex h-2 overflow-hidden rounded-pill">
-          <span style={{ flex: pr.vendidas, background: "#5C6373" }} />
-          <span style={{ flex: pr.reservadas, background: "#E8C547" }} />
-          <span style={{ flex: pr.disponibles, background: "#3EC898" }} />
+          <span style={{ flex: pr.vendidas, background: "#6B6F78" }} />
+          <span style={{ flex: pr.reservadas, background: "#D4A574" }} />
+          <span style={{ flex: pr.disponibles, background: "#6FB8A8" }} />
         </div>
         <div className="mt-2 flex gap-3 text-2xs text-ink-faint">
           <span><b className="text-green">{pr.disponibles}</b> disp.</span>
@@ -82,7 +83,7 @@ function ProyectoCard({ pr, index, onClick }: { pr: Proyecto; index: number; onC
 
       <div className="mt-4 border-t border-border pt-3 text-sm">
         <span className="text-ink-faint">Desde </span>
-        <span className="font-display font-bold text-gold">{usdShort(pr.ticketDesde)}</span>
+        <span className="font-display font-bold text-gold">{money.short(pr.ticketDesde)}</span>
       </div>
     </button>
   );

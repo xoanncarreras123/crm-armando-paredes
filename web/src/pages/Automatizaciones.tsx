@@ -21,7 +21,7 @@ const FLUJOS: Flujo[] = [
     ultimaCorrida: "hace 6 min",
     metrica: "42 mensajes hoy · 3 escalados",
     Icon: IconWhatsapp,
-    color: "#3EC898",
+    color: "#6FB8A8",
   },
   {
     nombre: "Nurturing automatizado",
@@ -31,7 +31,7 @@ const FLUJOS: Flujo[] = [
     ultimaCorrida: "hoy 9:00 a.m.",
     metrica: "18 mensajes enviados esta semana",
     Icon: IconClock,
-    color: "#5B8EF0",
+    color: "#7C9CC6",
   },
   {
     nombre: "Detección de inactividad",
@@ -41,7 +41,7 @@ const FLUJOS: Flujo[] = [
     ultimaCorrida: "hoy 8:00 a.m.",
     metrica: "2 deals penalizados hoy",
     Icon: IconBolt,
-    color: "#E8C547",
+    color: "#D4A574",
   },
   {
     nombre: "Reporte semanal por asesor",
@@ -51,7 +51,7 @@ const FLUJOS: Flujo[] = [
     ultimaCorrida: "hace 4 días",
     metrica: "Pausado",
     Icon: IconAuto,
-    color: "#9BA1AD",
+    color: "#9CA0A8",
   },
 ];
 

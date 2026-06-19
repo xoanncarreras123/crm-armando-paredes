@@ -7,9 +7,9 @@ const META: Record<
   TipoAlerta,
   { label: string; color: string; bg: string; Icon: typeof IconBolt }
 > = {
-  SENAL_CIERRE: { label: "Señal de cierre", color: "#E8C547", bg: "rgba(232,197,71,0.08)", Icon: IconBolt },
-  CHURN: { label: "Riesgo de fuga", color: "#E86060", bg: "transparent", Icon: IconAlertas },
-  RENOVACION: { label: "Por vencer", color: "#5B8EF0", bg: "transparent", Icon: IconClock },
+  SENAL_CIERRE: { label: "Señal de cierre", color: "#D4A574", bg: "rgba(212,165,116,0.08)", Icon: IconBolt },
+  CHURN: { label: "Riesgo de fuga", color: "#E07856", bg: "transparent", Icon: IconAlertas },
+  RENOVACION: { label: "Por vencer", color: "#7C9CC6", bg: "transparent", Icon: IconClock },
 };
 
 export function AlertsPanel() {
@@ -44,7 +44,7 @@ function AlertItem({ alerta, index }: { alerta: Alerta; index: number }) {
       style={{
         animationDelay: `${index * 50}ms`,
         background: m.bg,
-        borderColor: esCierre ? "rgba(232,197,71,0.35)" : "rgba(255,255,255,0.07)",
+        borderColor: esCierre ? "rgba(212,165,116,0.35)" : "var(--border)",
       }}
     >
       <div className="flex items-center justify-between">

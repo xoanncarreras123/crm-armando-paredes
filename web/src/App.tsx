@@ -1,5 +1,7 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createHashRouter, RouterProvider, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/lib/auth";
 import { AppShell } from "@/components/layout/AppShell";
+import { Login } from "@/pages/Login";
 import { Dashboard } from "@/pages/Dashboard";
 import { Pipeline } from "@/pages/Pipeline";
 import { Prospectos } from "@/pages/Prospectos";
@@ -10,10 +12,25 @@ import { Cotizador } from "@/pages/Cotizador";
 import { Alertas } from "@/pages/Alertas";
 import { Automatizaciones } from "@/pages/Automatizaciones";
 
-const router = createBrowserRouter([
+// Wrapper: redirige al login si no hay sesión activa.
+function RequireAuth({ children }: { children: React.ReactNode }) {
+  const { session } = useAuth();
+  if (!session) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+}
+
+const router = createHashRouter([
+  {
+    path: "/login",
+    element: <Login />,
+  },
   {
     path: "/",
-    element: <AppShell />,
+    element: (
+      <RequireAuth>
+        <AppShell />
+      </RequireAuth>
+    ),
     children: [
       { index: true, element: <Dashboard /> },
       { path: "pipeline", element: <Pipeline /> },
@@ -29,5 +46,9 @@ const router = createBrowserRouter([
 ]);
 
 export function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
 }
