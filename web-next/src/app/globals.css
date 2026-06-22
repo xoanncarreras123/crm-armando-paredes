@@ -6,6 +6,28 @@
 :root {
   color-scheme: dark;
   --bg-rgb: 14 15 18;
+  /* Aliases para compatibilidad con prototipos HTML */
+  --bg-base: rgb(14 15 18);
+  --bg-surface: rgb(21 23 28);
+  --bg-elevated: rgb(28 31 37);
+  --bg-hover: rgb(34 37 43);
+  --text-primary: rgb(242 243 245);
+  --text-secondary: rgb(156 160 168);
+  --text-tertiary: rgb(95 100 112);
+  --accent-gold: rgb(212 165 116);
+  --accent-gold-dim: rgb(138 107 74);
+  --accent-aqua: rgb(111 184 168);
+  --accent-terracotta: rgb(224 120 86);
+  --accent-blue: rgb(124 156 198);
+  --accent-violet: rgb(155 138 201);
+  --border-subtle: rgba(255,255,255,0.08);
+  --shadow: rgba(0,0,0,0.4);
+  --st-prospecto: rgb(124 156 198);
+  --st-lead: rgb(155 138 201);
+  --st-negociacion: rgb(212 165 116);
+  --st-reserva: rgb(224 168 86);
+  --st-cierre: rgb(111 184 168);
+  --st-perdida: #6B6F78;
   --surface-rgb: 21 23 28;
   --raised-rgb: 28 31 37;
   --ink-rgb: 242 243 245;
@@ -25,6 +47,27 @@
 :root[data-theme="light"] {
   color-scheme: light;
   --bg-rgb: 245 244 241;
+  --bg-base: rgb(245 244 241);
+  --bg-surface: rgb(255 255 255);
+  --bg-elevated: rgb(244 243 239);
+  --bg-hover: rgb(240 239 235);
+  --text-primary: rgb(26 27 30);
+  --text-secondary: rgb(90 94 102);
+  --text-tertiary: rgb(138 142 150);
+  --accent-gold: rgb(176 124 70);
+  --accent-gold-dim: rgb(201 168 120);
+  --accent-aqua: rgb(74 145 131);
+  --accent-terracotta: rgb(196 88 54);
+  --accent-blue: rgb(84 120 168);
+  --accent-violet: rgb(122 104 168);
+  --border-subtle: rgba(0,0,0,0.09);
+  --shadow: rgba(0,0,0,0.08);
+  --st-prospecto: rgb(84 120 168);
+  --st-lead: rgb(122 104 168);
+  --st-negociacion: rgb(176 124 70);
+  --st-reserva: rgb(196 152 60);
+  --st-cierre: rgb(74 145 131);
+  --st-perdida: #92959C;
   --surface-rgb: 255 255 255;
   --raised-rgb: 244 243 239;
   --ink-rgb: 26 27 30;

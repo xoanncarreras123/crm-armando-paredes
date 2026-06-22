@@ -5,6 +5,7 @@ import type { ComponentType, SVGProps } from "react";
 import {
   IconAlertas, IconAuto, IconCotizador, IconDashboard,
   IconInventario, IconPipeline, IconProspectos, IconProyectos,
+  IconContratos, IconCronograma, IconReporteria, IconPricing,
 } from "@/presentation/components/ui/icons";
 import { usePrefs, type Role } from "@/presentation/providers/PrefsProvider";
 import { useAuth } from "@/presentation/providers/AuthProvider";
@@ -18,8 +19,12 @@ const NAV: Item[] = [
   { to: "/proyectos",        label: "Proyectos",       icon: IconProyectos  },
   { to: "/inventario",       label: "Inventario",      icon: IconInventario },
   { to: "/cotizador",        label: "Cotizador IA",    icon: IconCotizador  },
+  { to: "/contratos",        label: "Contratos",       icon: IconContratos  },
+  { to: "/cronograma",       label: "Cronograma",      icon: IconCronograma },
   { to: "/alertas",          label: "Alertas",         icon: IconAlertas    },
   { to: "/automatizaciones", label: "Automatizaciones",icon: IconAuto       },
+  { to: "/reporteria",       label: "Reportería",      icon: IconReporteria },
+  { to: "/pricing",          label: "Pricing",         icon: IconPricing    },
 ];
 
 export function Sidebar() {
