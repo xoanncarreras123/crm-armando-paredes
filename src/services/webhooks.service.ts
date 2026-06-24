@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { Prisma, type CanalMensaje } from "@prisma/client";
 import { prisma } from "../lib/prisma.js";
 import { registrarInteraccion } from "./score.service.js";
@@ -18,8 +19,22 @@ export type MensajeCrudo = {
   payload: unknown;
 };
 
+/**
+ * Deriva una clave de idempotencia estable cuando el proveedor no manda un
+ * externalId. En Postgres los NULL son distintos entre sí, así que sin esto el
+ * @@unique([canal, externalId]) NO deduplicaría: cada reintento sin ID crearía
+ * una fila nueva. Hasheamos los campos que identifican el evento para que un
+ * reenvío idéntico colapse en la misma clave.
+ */
+function claveIdempotencia(m: MensajeCrudo): string {
+  if (m.externalId) return m.externalId;
+  const semilla = [m.telefono ?? "", m.email ?? "", m.contenido ?? ""].join("|");
+  return `auto:${createHash("sha256").update(semilla).digest("hex").slice(0, 32)}`;
+}
+
 /** Encola un mensaje entrante. Idempotente por (canal, externalId). */
 export async function encolarMensaje(m: MensajeCrudo) {
+  const externalId = claveIdempotencia(m);
   try {
     return await prisma.mensajeEntrante.create({
       data: {
@@ -28,7 +43,7 @@ export async function encolarMensaje(m: MensajeCrudo) {
         email: m.email,
         nombre: m.nombre,
         contenido: m.contenido,
-        externalId: m.externalId,
+        externalId,
         payload: (m.payload ?? {}) as Prisma.InputJsonValue,
       },
     });
@@ -36,7 +51,7 @@ export async function encolarMensaje(m: MensajeCrudo) {
     // Violación de unicidad => ya recibimos este evento; lo ignoramos.
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       return prisma.mensajeEntrante.findFirst({
-        where: { canal: m.canal, externalId: m.externalId },
+        where: { canal: m.canal, externalId },
       });
     }
     throw e;
@@ -114,14 +129,15 @@ async function procesarFormulario(msg: {
   nombre: string | null;
   contenido: string | null;
 }) {
-  const existente = await prisma.prospecto.findFirst({
-    where: {
-      OR: [
-        ...(msg.email ? [{ email: msg.email }] : []),
-        ...(msg.telefono ? [{ telefono: msg.telefono }] : []),
-      ],
-    },
-  });
+  // Solo deduplicamos si hay algún identificador. Con OR vacío Prisma no
+  // matchearía nada y crearíamos un prospecto basura con teléfono "".
+  const orDedupe = [
+    ...(msg.email ? [{ email: msg.email }] : []),
+    ...(msg.telefono ? [{ telefono: msg.telefono }] : []),
+  ];
+  const existente = orDedupe.length
+    ? await prisma.prospecto.findFirst({ where: { OR: orDedupe } })
+    : null;
   if (existente) {
     await registrarInteraccion({
       prospectoId: existente.id,

@@ -36,4 +36,10 @@ export const env = {
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? "12h",
   // Secreto compartido para validar webhooks entrantes (n8n / Urbania).
   WEBHOOK_SECRET: requiredSecret("WEBHOOK_SECRET", "dev-webhook-secret", 16),
+  // Orígenes permitidos para CORS (coma-separados). Ej: "https://web-next-blond.vercel.app".
+  // Vacío => en dev se permite cualquier origen; en prod se bloquea todo cross-origin.
+  CORS_ORIGINS: (process.env.CORS_ORIGINS ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean),
 } as const;
