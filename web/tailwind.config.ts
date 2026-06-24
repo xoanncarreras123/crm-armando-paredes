@@ -1,26 +1,23 @@
 import type { Config } from "tailwindcss";
 
-// Sistema de diseño — Armando Paredes CRM.
-// Premium adaptable (Linear/Vercel). Tokens vía variables CSS → light/dark.
-// Acento oro terracota usado con avaricia. Ver índice de variables en index.css.
 const c = (v: string) => `rgb(var(${v}) / <alpha-value>)`;
 const soft = (v: string) => `rgb(var(${v}) / 0.12)`;
 
 export default {
-  content: ["./index.html", "./src/**/*.{ts,tsx}"],
+  content: ["./src/**/*.{ts,tsx}"],
   darkMode: ["selector", '[data-theme="dark"]'],
   theme: {
     extend: {
       colors: {
         bg: c("--bg-rgb"),
         surface: c("--surface-rgb"),
-        raised: c("--raised-rgb"), // superficie elevada (hover, popovers)
+        raised: c("--raised-rgb"),
         border: "var(--border)",
         "border-strong": "var(--border-strong)",
         ink: {
-          DEFAULT: c("--ink-rgb"), // texto primario
-          muted: c("--ink-muted-rgb"), // texto secundario
-          faint: c("--ink-faint-rgb"), // texto terciario / labels
+          DEFAULT: c("--ink-rgb"),
+          muted: c("--ink-muted-rgb"),
+          faint: c("--ink-faint-rgb"),
         },
         gold: { DEFAULT: c("--gold-rgb"), soft: soft("--gold-rgb") },
         green: { DEFAULT: c("--green-rgb"), soft: soft("--green-rgb") },
@@ -33,7 +30,6 @@ export default {
         sans: ['"DM Sans"', "system-ui", "sans-serif"],
       },
       fontSize: {
-        // Escala real, no px al azar.
         "2xs": ["11px", { lineHeight: "14px", letterSpacing: "0.12em" }],
         xs: ["12px", { lineHeight: "16px" }],
         sm: ["13px", { lineHeight: "20px" }],
@@ -49,12 +45,15 @@ export default {
           from: { opacity: "0", transform: "translateY(12px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
-        shimmer: {
-          "100%": { transform: "translateX(100%)" },
+        shimmer: { "100%": { transform: "translateX(100%)" } },
+        pulse2: {
+          "0%,100%": { opacity: "1" },
+          "50%": { opacity: "0.4" },
         },
       },
       animation: {
         "fade-up": "fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) both",
+        pulse2: "pulse2 2s ease-in-out infinite",
       },
     },
   },

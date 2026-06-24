@@ -1,9 +1,6 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "framework": "nextjs",
   "env": {
-    "VITE_API_URL": "@crm_api_url",
-    "VITE_USE_MOCKS": "false"
+    "NEXT_PUBLIC_USE_MOCKS": "true"
   }
 }
